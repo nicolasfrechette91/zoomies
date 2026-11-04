@@ -136,12 +136,20 @@
     <div class="hearts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="card card-credits scroll">
       <h2 class="love">Made with love<br>for Fanny</h2>
-      <figure class="polaroid">
-        <div class="photo" id="credits-photo">
-          <canvas id="credits-placeholder" aria-label="Ranchy"></canvas>
-        </div>
-        <figcaption>Fanny &amp; Ranchy ♥</figcaption>
-      </figure>
+      <div class="polaroids">
+        <figure class="polaroid polaroid-real">
+          <div class="photo" id="credits-photo">
+            <img src="assets/ranchy-real.jpg" alt="The real Ranchy, lying belly-up on a chair" width="480" height="600">
+          </div>
+          <figcaption id="credits-photo-caption">The real Ranchy ♥</figcaption>
+        </figure>
+        <figure class="polaroid polaroid-drawn">
+          <div class="photo">
+            <canvas id="credits-placeholder" aria-label="Ranchy as drawn in the game"></canvas>
+          </div>
+          <figcaption>Game Ranchy</figcaption>
+        </figure>
+      </div>
       <ul class="credits-list">
         <li><span>Starring</span><b>Ranchy, as himself</b></li>
         <li><span>Inspired by</span><b>Fanny, the reason he waits by the door</b></li>

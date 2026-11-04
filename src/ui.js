@@ -92,7 +92,7 @@ export class UI {
   frame(dt) {
     this.portraitT += dt;
     if (this.current === 'title') this.drawPortraitTo(this.titlePortrait, this.portraitT);
-    if (this.current === 'credits' && !this.photoLoaded) this.drawPortraitTo(this.creditsPortrait, this.portraitT, { eyes: Math.sin(this.portraitT * 0.6) > 0.6 ? 'happy' : 'open' });
+    if (this.current === 'credits') this.drawPortraitTo(this.creditsPortrait, this.portraitT, { eyes: Math.sin(this.portraitT * 0.6) > 0.6 ? 'happy' : 'open' });
     if (this.toastTimer > 0) {
       this.toastTimer -= dt;
       if (this.toastTimer <= 0) this.el.toast.classList.remove('show');
@@ -108,6 +108,7 @@ export class UI {
       box.innerHTML = '';
       box.appendChild(img);
       box.classList.add('has-photo');
+      $('#credits-photo-caption').textContent = 'Fanny & Ranchy ♥';
     };
     img.onerror = () => {
       this.photoLoaded = false;

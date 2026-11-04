@@ -1,10 +1,11 @@
 // Offline support: network first (so updates show up right away), cache as a fallback.
-const CACHE = 'zoomies-v1';
+const CACHE = 'zoomies-v2';
 const CORE = [
   './',
   'index.html',
   'style.css',
   'manifest.webmanifest',
+  'assets/ranchy-real.jpg',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/maskable-512.png',
