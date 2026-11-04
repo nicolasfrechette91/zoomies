@@ -9,7 +9,7 @@ export const LEVELS = [
     theme: 'kitchen',
     floor: 'tile',
     time: 60,
-    stars: [0.45, 1.2, 2.2],
+    stars: [0.45, 1.2, 3.0],
     intro: 'Ranchy has the whole apartment to himself. Drag your finger to move the laser and lead him along the counters. Anything near an edge is fair game!',
     tips: ['Go slowly past things near an edge and Ranchy will paw them off.', 'Knock things off in quick succession for a combo.'],
     newThings: ['laser', 'treat'],

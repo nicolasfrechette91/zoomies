@@ -17,6 +17,12 @@ export const MAX_MULT = 5;
 const NO_LASER = { on: false, x: 0, y: 0, speed: 0, stillT: 0 };
 const LIQUID_DROPS = { coffee: '#7a4b2e', water: '#7ebede', wine: '#9e3b4e', perfume: '#f5aabe' };
 
+/** Is this object pressed against one of the room's walls? */
+const touchesWall = (it) => it.x - it.r < 3 || it.y - it.r < 3 || it.x + it.r > ROOM_W - 3 || it.y + it.r > ROOM_H - 3;
+
+/** How far a surface extends along an edge's direction (a counter's depth, a round table's width). */
+const surfaceDepth = (f, edge) => (f.shape === 'circle' ? f.r * 2 : Math.abs(edge.nx) > Math.abs(edge.ny) ? f.w : f.h);
+
 const SPEECH = [
   'Aww... were you good today?',
   'Ranchy... what happened here?',
@@ -310,7 +316,9 @@ export class Game {
         const m = Math.hypot(mx, my) || 1;
         edge = { nx: mx / m, ny: my / m, dist: 36 };
       }
-      if (edge.dist > 42) continue;
+      // Normally he only paws things near an edge. Something shoved flush against a wall is
+      // stuck there (bumping it only pins it harder), so for those he reaches across the whole surface.
+      if (edge.dist > (touchesWall(it) ? surfaceDepth(it.surface, edge) : 42)) continue;
       // just enough push to slide it past the edge (with a little extra flair)
       const sp = Math.min(430, (edge.dist + it.r + 12) * itemFriction(it) * rand(1.1, 1.35));
       it.vx += edge.nx * sp;
