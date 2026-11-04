@@ -27,6 +27,11 @@ export const ITEM_TYPES = {
 for (const k in ITEM_TYPES) ITEM_TYPES[k].type = k;
 
 const GRAVITY = 760;
+
+/** Sliding friction coefficient (per second) for an item: heavier things stop sooner. */
+export function itemFriction(it) {
+  return SURFACE_FRICTION * (0.6 + it.mass * 0.45);
+}
 const MAX_SPEED = 430;
 const SURFACE_FRICTION = 3.4;
 export const HEIGHT_SCALE = 0.0036;
@@ -68,7 +73,7 @@ export function stepItems(items, dt, room, onLand, onBump) {
         it.vx *= MAX_SPEED / sp;
         it.vy *= MAX_SPEED / sp;
       }
-      const fr = Math.exp(-SURFACE_FRICTION * (0.6 + it.mass * 0.45) * dt);
+      const fr = Math.exp(-itemFriction(it) * dt);
       it.vx *= fr;
       it.vy *= fr;
       if (Math.abs(it.vx) < 0.5) it.vx = 0;
@@ -256,6 +261,11 @@ export function drawItem(ctx, it, t) {
   const e = spr.ext;
   ctx.drawImage(spr.canvas, -e, -e, e * 2, e * 2);
   ctx.restore();
+}
+
+/** Build every sprite up front so the first knock doesn't cause a hitch. */
+export function warmItemSprites(items) {
+  for (const it of items) getSprite(it.type, it.variant, it.seed, itemRender.pxScale);
 }
 
 /** Small outline helper used by the HUD/intro icons. */

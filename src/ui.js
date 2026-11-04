@@ -155,7 +155,7 @@ export class UI {
       const txt = document.createElement('span');
       txt.className = 'lv-text';
       const best = Save.best(i);
-      txt.innerHTML = `<small>Level ${i + 1} · ${lv.room}</small><b>${lv.name}</b>${best ? `<span class="lv-best">Best ${fmt(best)}</span>` : locked ? '<span class="lv-best">Get a star in the last room</span>' : '<span class="lv-best">New!</span>'}`;
+      txt.innerHTML = `<small>Level ${i + 1} · ${lv.room}</small><b>${lv.name}</b>${best ? `<span class="lv-best">Best ${fmt(best)}</span>` : locked ? '<span class="lv-best">Earn a star in the room before</span>' : '<span class="lv-best">New!</span>'}`;
       b.appendChild(txt);
       const st = document.createElement('span');
       st.className = 'lv-stars';

@@ -112,7 +112,7 @@ button { font: inherit; color: inherit; }
   position: fixed;
   z-index: 30;
   top: calc(var(--sat) + 10px);
-  right: calc(var(--sar) + 10px);
+  right: max(calc(var(--sar) + 10px), calc((100vw - 540px) / 2 + 10px));
 }
 .btn-mute .spk { stroke-width: 1.6; }
 .btn-mute .cross { display: none; }
@@ -290,8 +290,8 @@ button { font: inherit; color: inherit; }
 .hud-bar {
   position: absolute;
   top: calc(var(--sat) + 8px);
-  left: calc(var(--sal) + 10px);
-  right: calc(var(--sar) + 10px);
+  left: max(calc(var(--sal) + 10px), calc((100vw - 540px) / 2 + 10px));
+  right: max(calc(var(--sar) + 10px), calc((100vw - 540px) / 2 + 10px));
   display: flex;
   align-items: center;
   gap: 8px;
@@ -484,6 +484,14 @@ button { font: inherit; color: inherit; }
 }
 
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; color: var(--paper); margin: 0; }
+
+@media (max-width: 380px) {
+  .hud-bar { gap: 6px; }
+  .pill { padding: 3px 7px 4px; }
+  .pill-time { flex: 1.45; }
+  .pill-label { font-size: 10px; }
+  .pill-value { font-size: 20px; }
+}
 
 @media (max-height: 620px) {
   .card { padding: 12px 14px 14px; }

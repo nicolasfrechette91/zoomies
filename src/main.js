@@ -130,8 +130,12 @@ function resume() {
 function onAction(action, el) {
   switch (action) {
     case 'play':
-      ui.buildLevels(LEVELS);
-      setScreen('levels');
+      // first time ever: straight into the kitchen
+      if (Save.data.unlocked === 1 && !Save.stars(0) && !Save.data.plays) openLevel(0);
+      else {
+        ui.buildLevels(LEVELS);
+        setScreen('levels');
+      }
       break;
     case 'title':
       disposeGame();
@@ -225,12 +229,16 @@ const onResize = () => {
 window.addEventListener('resize', onResize);
 window.addEventListener('orientationchange', onResize);
 
+const turbo = Math.max(1, Math.min(8, Number(params.get('turbo')) || 1)); // debug: simulate faster
+
 const loop = startLoop((dt) => {
   const inLevel = game && (screen === 'play' || screen === 'intro' || screen === 'results' || screen === 'pause');
   if (inLevel) {
     if (screen === 'play' && !paused) {
-      laser.update(dt);
-      game.update(dt, laser);
+      for (let k = 0; k < turbo && game; k++) {
+        laser.update(dt);
+        game.update(dt, laser);
+      }
       needsRender = true;
     } else if (screen === 'intro' || screen === 'results') {
       game.update(dt, null);

@@ -1,7 +1,7 @@
 // One play session of a level: rules (timer, score, combos), interactions, and drawing.
 import { Room, ROOM_W, ROOM_H } from './room.js';
 import { Cat, CAT_R, CAT_MASS } from './cat.js';
-import { Item, stepItems, drawItem, drawItemShadow, itemRender } from './objects.js';
+import { Item, stepItems, drawItem, drawItemShadow, itemRender, itemFriction, warmItemSprites } from './objects.js';
 import { Vacuum, Cucumbers } from './hazards.js';
 import { Treat, Box, Sunbeam } from './pickups.js';
 import { FX } from './particles.js';
@@ -289,7 +289,7 @@ export class Game {
     }
   }
 
-  /** Cats knock things off tables on purpose. If he ambles past something near an edge, he paws it. */
+  /** Cats knock things off tables on purpose. If he ambles past something on a surface, he paws it toward the edge. */
   autoSwat() {
     const c = this.cat;
     if (c.swatCD > 0 || !c.controllable || c.state === 'crouch' || c.speed > 150 || c.hopT < c.hopDur) return;
@@ -302,9 +302,17 @@ export class Game {
       const dx = it.x - hx;
       const dy = it.y - hy;
       if (dx * dx + dy * dy > 24 * 24) continue;
-      const edge = this.room.openEdge(it.surface, it.x, it.y);
-      if (!edge || edge.dist > 22) continue;
-      const sp = 120 + Math.random() * 40 + edge.dist * 4;
+      let edge = this.room.openEdge(it.surface, it.x, it.y);
+      if (!edge) {
+        // tucked in a corner: shove it out toward the middle of the room
+        const mx = ROOM_W / 2 - it.x;
+        const my = ROOM_H / 2 - it.y;
+        const m = Math.hypot(mx, my) || 1;
+        edge = { nx: mx / m, ny: my / m, dist: 36 };
+      }
+      if (edge.dist > 42) continue;
+      // just enough push to slide it past the edge (with a little extra flair)
+      const sp = Math.min(430, (edge.dist + it.r + 12) * itemFriction(it) * rand(1.1, 1.35));
       it.vx += edge.nx * sp;
       it.vy += edge.ny * sp;
       it.av += rand(-8, 8);
@@ -486,6 +494,8 @@ export class Game {
     for (const d of this.decals) this.paintDecal(g, d);
     this.bgCtx = g;
     this.bgVersion = view.version;
+    itemRender.pxScale = view.pxScale * 1.25;
+    warmItemSprites(this.items);
   }
 
   paintDecal(g, d) {
