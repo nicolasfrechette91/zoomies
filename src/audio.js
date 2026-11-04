@@ -116,7 +116,9 @@ class SFX {
 
   bell(freq, dur, gain, at = 0) {
     this.tone('sine', freq, freq, dur, gain, at, this.master, 0.002);
-    this.tone('sine', freq * 2.76, freq * 2.76, dur * 0.5, gain * 0.35, at, this.master, 0.002);
+    // the shimmer overtone; skip it when it would be at or above the highest frequency the context can play
+    const over = freq * 2.76;
+    if (over < this.ctx.sampleRate / 2) this.tone('sine', over, over, dur * 0.5, gain * 0.35, at, this.master, 0.002);
   }
 
   // ------------------------------------------------------------ ui
