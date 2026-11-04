@@ -268,7 +268,8 @@ button { font: inherit; color: inherit; }
 
 /* ------------------------------------------------------------ intro */
 
-.card-intro { padding-bottom: 16px; }
+/* no bottom padding: the sticky button row below supplies it, so nothing shows under the row */
+.card.card-intro { padding-bottom: 0; }
 .intro-text { margin: 4px 0 10px; line-height: 1.4; font-size: 15.5px; }
 .intro-new { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .intro-new li { display: flex; gap: 10px; align-items: center; background: var(--paper); border: 2px solid var(--ink); border-radius: 14px; padding: 6px 10px 6px 6px; }
@@ -282,6 +283,25 @@ button { font: inherit; color: inherit; }
 .goals { display: flex; gap: 8px; justify-content: space-between; }
 .goals span { flex: 1; text-align: center; background: var(--paper); border: 2px solid var(--ink); border-radius: 12px; padding: 5px 4px; font-weight: 900; font-size: 15px; }
 .goals i { display: block; font-style: normal; color: var(--mustard); -webkit-text-stroke: 0.8px var(--ink); font-size: 14px; letter-spacing: -1px; }
+/* On short screens the intro text scrolls under the buttons, so Go! is always in view. */
+.card-intro .row {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: 4px;
+  padding: 10px 0 16px;
+  background: var(--cream);
+}
+.card-intro .row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 12px;
+  background: linear-gradient(to bottom, rgba(255, 246, 233, 0), var(--cream));
+  pointer-events: none;
+}
 
 /* ------------------------------------------------------------ HUD */
 
