@@ -398,7 +398,7 @@ button { font: inherit; color: inherit; }
 .card-credits { text-align: center; max-width: 360px; }
 .love { font-size: 28px !important; color: var(--orange-deep); text-shadow: 0 2px 0 rgba(75, 51, 38, 0.15); }
 .polaroid {
-  margin: 10px auto 12px;
+  margin: 22px auto 14px;
   width: min(72%, 240px);
   background: #fff;
   border: 2px solid var(--ink);

@@ -328,7 +328,9 @@ export class Game {
     const def = it.def;
     const fx = this.fx;
     this.knocked++;
-    if (this.playing) {
+    // things still mid-air when the clock runs out still count
+    const scoring = this.playing || (this.state === 'ending' && this.endReason === 'time');
+    if (scoring) {
       if (this.comboT > 0) this.combo++;
       else this.combo = 1;
       this.comboT = COMBO_WINDOW;
@@ -348,7 +350,8 @@ export class Game {
         fx.hearts(this.cat.x, this.cat.y - 12, 1 + mult);
       }
       this.hooks.score?.(this.score, this.knocked, this.items.length);
-      this.hooks.combo?.(mult >= 2 ? mult : 0, 1, true);
+      if (this.playing) this.hooks.combo?.(mult >= 2 ? mult : 0, 1, true);
+      else this.stars = this.thresholds.filter((th) => this.score >= th).length;
     }
     // juice
     fx.addShake(2.2 + def.value / 70);
@@ -462,6 +465,7 @@ export class Game {
   }
 
   result() {
+    this.stars = this.thresholds.filter((th) => this.score >= th).length;
     return {
       levelIndex: this.index,
       score: this.score,

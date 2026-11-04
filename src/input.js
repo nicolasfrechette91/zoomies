@@ -100,7 +100,9 @@ export class PointerInput {
     const rect = this.canvas.getBoundingClientRect();
     this.sx = e.clientX - rect.left;
     this.sy = e.clientY - rect.top;
-    const off = this.type === 'touch' ? TOUCH_OFFSET : 0;
+    // keep the dot above the fingertip, but let it reach the bottom of the room too
+    const room = this.view.worldToScreen(0, ROOM_H);
+    const off = this.type === 'touch' ? TOUCH_OFFSET * clamp((this.view.cssH - this.sy) / 90, 0.25, 1) * clamp((room.y + 30 - this.sy) / 60, 0.4, 1) : 0;
     const w = this.view.screenToWorld(this.sx, this.sy - off);
     this.laser.set(true, w.x, w.y);
   }
