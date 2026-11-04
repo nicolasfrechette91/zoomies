@@ -41,7 +41,8 @@ class SFX {
       s.connect(ctx.destination);
       s.start(0);
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    // not just 'suspended': iOS also uses 'interrupted' (phone call, Siri), which never recovers by itself
+    if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
   }
 
   suspend() {
@@ -49,7 +50,7 @@ class SFX {
   }
 
   resume() {
-    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    if (this.ctx && this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
   }
 
   setMuted(m) {
