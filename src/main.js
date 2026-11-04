@@ -91,8 +91,15 @@ function disposeGame() {
   game = null;
 }
 
+/** The menu cat may be belly-up and purring; that purr must not follow us into a room. */
+function quietMenuCat() {
+  sfx.purr(false);
+  demo.purring = false;
+}
+
 function openLevel(i) {
   disposeGame();
+  quietMenuCat();
   game = new Game(LEVELS[i], i, { hooks });
   ui.showIntro(LEVELS[i], i, game.thresholds);
   ui.resetHud(game.items.length);
@@ -101,6 +108,7 @@ function openLevel(i) {
 
 function startLevel(i) {
   disposeGame();
+  quietMenuCat();
   game = new Game(LEVELS[i], i, { hooks });
   ui.resetHud(game.items.length);
   game.start();
