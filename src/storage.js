@@ -13,16 +13,38 @@ const defaults = () => ({
 });
 
 let data = defaults();
+let levelCount = Infinity;
+
+const count = (v) => (Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
+
+/**
+ * Keep only the fields that have the right type. Anything else (null, strings, a hand-edited
+ * or older save) falls back to the default, so a bad field can never lock the game up.
+ */
+function sanitize(raw) {
+  const d = defaults();
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return d;
+  if (Array.isArray(raw.stars)) d.stars = raw.stars.slice(0, levelCount).map((v) => Math.min(3, count(v)));
+  if (Array.isArray(raw.best)) d.best = raw.best.slice(0, levelCount).map(count);
+  if (Number.isFinite(raw.unlocked)) d.unlocked = Math.max(1, Math.min(levelCount, Math.floor(raw.unlocked)));
+  if (Number.isFinite(raw.knockedTotal)) d.knockedTotal = count(raw.knockedTotal);
+  if (Number.isFinite(raw.plays)) d.plays = count(raw.plays);
+  if (typeof raw.muted === 'boolean') d.muted = raw.muted;
+  if (typeof raw.seenCredits === 'boolean') d.seenCredits = raw.seenCredits;
+  return d;
+}
 
 export const Save = {
   get data() {
     return data;
   },
 
-  load() {
+  /** Load the save. `levels` is how many rooms exist, so `unlocked` can be clamped to 1..levels. */
+  load(levels = Infinity) {
+    levelCount = levels;
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) data = Object.assign(defaults(), JSON.parse(raw));
+      data = raw ? sanitize(JSON.parse(raw)) : defaults();
     } catch (_) {
       data = defaults();
     }

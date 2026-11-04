@@ -10,7 +10,7 @@ import { sfx } from './audio.js';
 import { ROOM_W, ROOM_H } from './room.js';
 import { rand, clamp } from './util.js';
 
-Save.load();
+Save.load(LEVELS.length);
 const params = new URLSearchParams(location.search);
 if (params.has('unlock')) {
   Save.data.unlocked = LEVELS.length;
