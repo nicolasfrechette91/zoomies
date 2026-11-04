@@ -1,5 +1,7 @@
 // Offline support: network first (so updates show up right away), cache as a fallback.
-const CACHE = 'zoomies-v2';
+// cache: 'no-cache' makes every fetch check with the server, so the browser's HTTP cache
+// (GitHub Pages sends max-age=600) can't hold an update back for 10 minutes.
+const CACHE = 'zoomies-v3';
 const CORE = [
   './',
   'index.html',
@@ -34,7 +36,11 @@ const CORE = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(CACHE)
+      .then((c) => c.addAll(CORE.map((url) => new Request(url, { cache: 'no-cache' }))))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener('activate', (e) => {
@@ -49,7 +55,7 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(req)
+    fetch(req, { cache: 'no-cache' })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
