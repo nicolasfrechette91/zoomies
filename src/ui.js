@@ -52,9 +52,26 @@ export class UI {
     this.creditsPortrait = $('#credits-placeholder');
     this.thumbs = new Map();
 
+    // A finger that was already down when a card appeared (holding the laser as time runs out,
+    // or resting on the room while another finger taps Pause) must not press whatever button
+    // ends up under it when it lifts. Remember when each pointer went down, and which one just lifted.
+    this.shownAt = 0;
+    this.downAt = new Map();
+    this.liftedDownAt = null;
+    window.addEventListener('pointerdown', (e) => this.downAt.set(e.pointerId, performance.now()), true);
+    window.addEventListener('pointerup', (e) => {
+      this.liftedDownAt = this.downAt.has(e.pointerId) ? this.downAt.get(e.pointerId) : null;
+      this.downAt.delete(e.pointerId);
+    }, true);
+    window.addEventListener('pointercancel', (e) => this.downAt.delete(e.pointerId), true);
+
     document.addEventListener('click', (e) => {
+      const downAt = this.liftedDownAt;
+      this.liftedDownAt = null;
       const b = e.target.closest('[data-action]');
       if (!b || b.disabled) return;
+      // detail is 0 for keyboard and programmatic clicks: those are always intentional
+      if (e.detail > 0 && downAt !== null && downAt < this.shownAt) return;
       sfx.unlock();
       if (b.dataset.action !== 'mute') sfx.click();
       this.onAction(b.dataset.action, b);
@@ -65,6 +82,7 @@ export class UI {
   }
 
   show(name) {
+    this.shownAt = performance.now();
     for (const k in this.screens) this.screens[k].classList.toggle('active', k === name);
     this.hud.hidden = !(name === 'play' || name === 'pause');
     this.hud.classList.toggle('dim', name === 'pause');
