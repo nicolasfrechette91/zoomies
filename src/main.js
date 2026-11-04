@@ -132,6 +132,8 @@ function pause() {
 
 function resume() {
   paused = false;
+  // pause() stopped the purr; clear the flag so it starts again if he's still belly-up
+  if (game) game.purring = false;
   setScreen('play');
 }
 
@@ -194,7 +196,12 @@ function onAction(action, el) {
       sfx.setMuted(m);
       Save.setMuted(m);
       ui.setMuted(m);
-      if (!m) sfx.click();
+      if (!m) {
+        // muting stopped the purr; let whichever cat is belly-up start it again
+        if (game) game.purring = false;
+        demo.purring = false;
+        sfx.click();
+      }
       break;
     }
   }
