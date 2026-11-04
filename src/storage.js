@@ -51,7 +51,13 @@ export const Save = {
     return data;
   },
 
+  /**
+   * Save to localStorage. Another copy of the game (a second tab, or an Android tab plus the
+   * installed app) may have saved since we loaded, so merge with what's stored first: progress
+   * only ever goes up. Settings (mute) come from this copy.
+   */
   write() {
+    mergeStored();
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
     } catch (_) {
@@ -73,6 +79,7 @@ export const Save = {
 
   /** Record a finished level. Returns what changed so the results screen can celebrate. */
   record(i, stars, score, knocked, levelCount) {
+    mergeStored(); // so "new best" / "unlocked!" compare against progress saved by another copy too
     const prevStars = this.stars(i);
     const prevBest = this.best(i);
     const prevUnlocked = data.unlocked;
@@ -96,6 +103,35 @@ export const Save = {
 
   reset() {
     data = defaults();
-    this.write();
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data)); // no merge: a reset really starts over
+    } catch (_) {
+      /* nothing to reset */
+    }
   },
 };
+
+/** Per-room maximum of two lists (stars or best scores). */
+function maxList(a, b) {
+  const out = [];
+  for (let i = 0; i < Math.max(a.length, b.length); i++) out[i] = Math.max(a[i] || 0, b[i] || 0);
+  return out;
+}
+
+/** Fold whatever is currently stored into the in-memory save, keeping the higher progress. */
+function mergeStored() {
+  let stored = null;
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) stored = sanitize(JSON.parse(raw));
+  } catch (_) {
+    return; // unreadable or blocked storage: nothing to merge
+  }
+  if (!stored) return;
+  data.stars = maxList(data.stars, stored.stars);
+  data.best = maxList(data.best, stored.best);
+  data.unlocked = Math.max(data.unlocked, stored.unlocked);
+  data.knockedTotal = Math.max(data.knockedTotal, stored.knockedTotal);
+  data.plays = Math.max(data.plays, stored.plays);
+  data.seenCredits = data.seenCredits || stored.seenCredits;
+}
