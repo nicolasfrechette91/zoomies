@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Zoomies, starring Ranchy</title>
+  <meta name="description" content="Zoomies, starring Ranchy. A tiny cozy game made with love for Fanny.">
+  <meta name="theme-color" content="#3a2a24">
+  <meta name="color-scheme" content="light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Zoomies">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game" aria-label="Zoomies play area"></canvas>
+  <div id="safe-probe" aria-hidden="true"></div>
+
+  <!-- In-game HUD -->
+  <div id="hud" class="hud" hidden>
+    <div class="hud-bar">
+      <button class="icon-btn" data-action="pause" aria-label="Pause">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.6"/><rect x="13.5" y="5" width="4" height="14" rx="1.6"/></svg>
+      </button>
+      <div class="pill pill-time" id="pill-time">
+        <span class="pill-label">Fanny gets home in</span>
+        <span class="pill-value" id="hud-time">60s</span>
+      </div>
+      <div class="pill pill-score">
+        <span class="pill-value" id="hud-score">0</span>
+        <span class="pill-label" id="hud-mess">0/0 knocked</span>
+      </div>
+      <span class="mute-slot" aria-hidden="true"></span>
+    </div>
+    <div class="combo" id="hud-combo" aria-live="polite">
+      <b id="hud-combo-x">x2</b><span>combo!</span>
+      <i class="combo-bar"><em id="hud-combo-bar"></em></i>
+    </div>
+    <div class="toast" id="hud-toast" role="status"></div>
+  </div>
+
+  <button id="btn-mute" class="icon-btn btn-mute" data-action="mute" aria-label="Mute sound" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/>
+      <path class="wave" d="M15.5 9c1 .9 1.5 1.9 1.5 3s-.5 2.1-1.5 3M18 6.5c1.8 1.5 2.8 3.4 2.8 5.5s-1 4-2.8 5.5" fill="none"/>
+      <path class="cross" d="M16 9.5l5 5M21 9.5l-5 5" fill="none"/>
+    </svg>
+  </button>
+
+  <!-- Title -->
+  <section class="screen screen-title" id="screen-title" aria-label="Title">
+    <div class="title-stack">
+      <h1 class="logo" aria-label="Zoomies">
+        <span>Z</span><span>o</span><span>o</span><span>m</span><span>i</span><span>e</span><span>s</span>
+      </h1>
+      <p class="starring">starring <b>Ranchy</b></p>
+      <div class="medallion"><canvas id="title-portrait" class="portrait" aria-label="Ranchy, an orange and white cat"></canvas></div>
+      <button class="btn btn-primary btn-big" data-action="play">Play</button>
+      <button class="btn btn-ghost btn-small" data-action="credits">♥ Credits</button>
+    </div>
+  </section>
+
+  <!-- Room select -->
+  <section class="screen" id="screen-levels" aria-label="Choose a room">
+    <div class="card card-levels">
+      <div class="card-head">
+        <button class="icon-btn small" data-action="title" aria-label="Back to title">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5" fill="none"/></svg>
+        </button>
+        <h2>Pick a room</h2>
+        <span class="star-count" id="star-count">★ 0/18</span>
+      </div>
+      <ol class="level-list scroll" id="level-list"></ol>
+      <div class="card-foot"><button class="btn btn-ghost btn-small" data-action="credits">♥ Credits</button></div>
+    </div>
+  </section>
+
+  <!-- Level intro -->
+  <section class="screen screen-low" id="screen-intro" aria-label="Level intro">
+    <div class="card card-intro scroll">
+      <p class="chip" id="intro-chip">Level 1</p>
+      <h2 id="intro-title">Kitchen Counter Crimes</h2>
+      <p class="intro-text" id="intro-text"></p>
+      <ul class="intro-new" id="intro-new"></ul>
+      <ul class="tips" id="intro-tips"></ul>
+      <p class="goals-label">Fanny gets home in 60 seconds. Make a mess worth:</p>
+      <div class="goals" id="intro-goals"></div>
+      <div class="row">
+        <button class="btn btn-ghost" data-action="levels">Rooms</button>
+        <button class="btn btn-primary btn-big" data-action="go">Go!</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section class="screen" id="screen-pause" aria-label="Paused">
+    <div class="card card-pause">
+      <h2>Paused</h2>
+      <p class="muted-text">Ranchy is waiting, tail twitching.</p>
+      <div class="col">
+        <button class="btn btn-primary btn-big" data-action="resume">Resume</button>
+        <button class="btn" data-action="retry">Restart</button>
+        <button class="btn btn-ghost" data-action="levels">Rooms</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="screen screen-low" id="screen-results" aria-label="Results">
+    <div class="card card-results">
+      <h2 id="res-title">Fanny's home!</h2>
+      <p class="res-sub" id="res-sub"></p>
+      <div class="res-stars" id="res-stars"><span class="star">★</span><span class="star big">★</span><span class="star">★</span></div>
+      <p class="res-score"><b id="res-score">0</b> points <span class="badge" id="res-best" hidden>New best!</span></p>
+      <ul class="res-rows">
+        <li><span>Knocked off</span><b id="res-knocked">0/0</b></li>
+        <li><span>Best combo</span><b id="res-combo">-</b></li>
+        <li id="res-bonus-row" hidden><span>Early finish bonus</span><b id="res-bonus">+0</b></li>
+      </ul>
+      <p class="res-flavor" id="res-flavor"></p>
+      <p class="res-note" id="res-note"></p>
+      <div class="row">
+        <button class="btn btn-ghost" data-action="levels">Rooms</button>
+        <button class="btn" data-action="retry">Retry</button>
+        <button class="btn btn-primary" id="res-next-btn" data-action="next">Next room ›</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Credits -->
+  <section class="screen screen-credits" id="screen-credits" aria-label="Credits">
+    <div class="hearts" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="card card-credits scroll">
+      <h2 class="love">Made with love<br>for Fanny</h2>
+      <figure class="polaroid">
+        <div class="photo" id="credits-photo">
+          <canvas id="credits-placeholder" aria-label="Ranchy"></canvas>
+        </div>
+        <figcaption>Fanny &amp; Ranchy ♥</figcaption>
+      </figure>
+      <ul class="credits-list">
+        <li><span>Starring</span><b>Ranchy, as himself</b></li>
+        <li><span>Inspired by</span><b>Fanny, the reason he waits by the door</b></li>
+        <li><span>Things knocked off so far</span><b id="credits-knocked">0</b></li>
+        <li><span>Stars collected</span><b id="credits-stars">0/18</b></li>
+      </ul>
+      <p class="fine">No real mugs were harmed in the making of this game.</p>
+      <button class="btn btn-primary" data-action="credits-back">Back</button>
+    </div>
+  </section>
+
+  <div id="rotate-hint" aria-hidden="true"><p>Turn your phone upright<br>for maximum zoomies ↻</p></div>
+
+  <noscript><p class="noscript">Zoomies needs JavaScript to run.</p></noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
