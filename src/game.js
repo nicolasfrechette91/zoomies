@@ -140,7 +140,8 @@ export class Game {
         this.fx.addShake(2);
       }
     }
-    if (this.vacuums.length) sfx.vacuumLevel(playing ? (frozen ? 0.12 : 0.25 + near * 0.75) : 0);
+    // this.playing, not the `playing` read at the top: finish() may have just stopped the vacuum this frame
+    if (this.vacuums.length) sfx.vacuumLevel(this.playing ? (frozen ? 0.12 : 0.25 + near * 0.75) : 0);
     if (playing) {
       this.cucumbers.update(dt, this);
       for (let i = this.cucumbers.list.length - 1; i >= 0; i--) {
