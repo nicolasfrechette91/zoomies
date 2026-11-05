@@ -293,6 +293,10 @@ export function drawDoor(ctx, room, open) {
 function dropShadow(ctx, f) {
   const ox = 2 + f.z * 0.14;
   const oy = 3 + f.z * 0.22;
+  if (f.kind === 'fridge') {
+    tallShadow(ctx, f, ox, oy);
+    return;
+  }
   ctx.fillStyle = 'rgba(70, 45, 25, 0.16)';
   for (let k = 0; k < 2; k++) {
     const s = 1 - k * 0.45;
@@ -303,6 +307,37 @@ function dropShadow(ctx, f) {
     }
     ctx.fill();
   }
+}
+
+/**
+ * Tall furniture (the fridge) casts a long, dark shadow: its footprint swept toward the
+ * bottom-right, the same direction as every other shadow, so it reads as standing up high.
+ */
+function tallShadow(ctx, f, ox, oy) {
+  const sweep = (k) => {
+    const dx = ox * k;
+    const dy = oy * k;
+    ctx.beginPath();
+    ctx.moveTo(f.x, f.y);
+    ctx.lineTo(f.x + f.w, f.y);
+    ctx.lineTo(f.x + f.w + dx, f.y + dy);
+    ctx.lineTo(f.x + f.w + dx, f.y + f.h + dy);
+    ctx.lineTo(f.x + dx, f.y + f.h + dy);
+    ctx.lineTo(f.x, f.y + f.h);
+    ctx.closePath();
+  };
+  ctx.save();
+  // a soft outer edge, the shadow itself, and a darker band close to the base
+  ctx.fillStyle = 'rgba(60, 40, 28, 0.1)';
+  sweep(1.18);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(60, 40, 28, 0.2)';
+  sweep(1);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(60, 40, 28, 0.16)';
+  sweep(0.45);
+  ctx.fill();
+  ctx.restore();
 }
 
 function topShape(ctx, f, rnd, inset = 0, amp = 0.7) {
@@ -540,6 +575,242 @@ function sofaLike(ctx, f, rnd, color, arm = 13, back = 15) {
   }
 }
 
+// ---------------------------------------------------------------- fridge
+
+const STEEL = { hi: '#f2f6f9', base: '#dae4eb', lo: '#bfcdd8', door: '#bccdd9', handle: '#7f95a6', shine: '#f4f8fb' };
+
+/**
+ * Which way a piece of furniture faces: of its sides that aren't against a wall, the one that points
+ * most toward the middle of the room. Returns the rotation that turns local "down" (+y) to face that
+ * way, and the furniture's width along its front (W) and its depth (D).
+ */
+function facing(f) {
+  const sides = [
+    { angle: -Math.PI / 2, nx: 1, ny: 0, wall: f.x + f.w >= ROOM_W - 2, W: f.h, D: f.w }, // right
+    { angle: 0, nx: 0, ny: 1, wall: f.y + f.h >= ROOM_H - 2, W: f.w, D: f.h }, // bottom
+    { angle: Math.PI / 2, nx: -1, ny: 0, wall: f.x <= 2, W: f.h, D: f.w }, // left
+    { angle: Math.PI, nx: 0, ny: -1, wall: f.y <= 2, W: f.w, D: f.h }, // top
+  ];
+  const tx = ROOM_W / 2 - f.cx;
+  const ty = ROOM_H / 2 - f.cy;
+  let best = sides[1];
+  let bestDot = -Infinity;
+  for (const s of sides) {
+    const dot = s.nx * tx + s.ny * ty;
+    if (!s.wall && dot > bestDot) {
+      bestDot = dot;
+      best = s;
+    }
+  }
+  return best;
+}
+
+/** A round fridge magnet. */
+function magnet(ctx, x, y, r, color) {
+  circle(ctx, x + 0.5, y + 0.8, r);
+  ctx.fillStyle = 'rgba(60, 40, 28, 0.25)';
+  ctx.fill();
+  circle(ctx, x, y, r);
+  fillInk(ctx, color, 0.9);
+  circle(ctx, x - r * 0.35, y - r * 0.35, r * 0.3);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fill();
+}
+
+/** A heart-shaped magnet, upright. */
+function heartMagnet(ctx, x, y, r, color) {
+  const heart = (ox, oy) => {
+    ctx.beginPath();
+    ctx.moveTo(ox, oy + r * 0.95);
+    ctx.bezierCurveTo(ox - r * 1.6, oy - r * 0.15, ox - r * 0.75, oy - r * 1.35, ox, oy - r * 0.45);
+    ctx.bezierCurveTo(ox + r * 0.75, oy - r * 1.35, ox + r * 1.6, oy - r * 0.15, ox, oy + r * 0.95);
+    ctx.closePath();
+  };
+  heart(x + 0.5, y + 0.8);
+  ctx.fillStyle = 'rgba(60, 40, 28, 0.25)';
+  ctx.fill();
+  heart(x, y);
+  fillInk(ctx, color, 0.9);
+}
+
+/** A crayon drawing of Ranchy (with a heart), held up by a magnet. Drawn upright, centred on 0,0. */
+function pinnedDrawing(ctx, rnd) {
+  // paper with a soft shadow
+  ctx.fillStyle = 'rgba(60, 40, 28, 0.2)';
+  ctx.fillRect(-8.2, -6.4, 17.4, 14.4);
+  sketchRect(ctx, -9, -7.2, 17.4, 14.4, 1, rnd, 0.25);
+  fillInk(ctx, '#fffaf1', 0.9);
+  // orange cat head with ears and a white muzzle, crayon style
+  ctx.lineWidth = 0.8;
+  ctx.strokeStyle = '#c96f2e';
+  ctx.fillStyle = '#eba25c';
+  ctx.beginPath();
+  ctx.moveTo(-6.3, -1.4);
+  ctx.lineTo(-5.4, -4.6);
+  ctx.lineTo(-3.4, -2.6);
+  ctx.lineTo(-1.2, -2.6);
+  ctx.lineTo(0.8, -4.6);
+  ctx.lineTo(1.7, -1.4);
+  ctx.quadraticCurveTo(2.2, 3.2, -2.3, 3.4);
+  ctx.quadraticCurveTo(-6.8, 3.2, -6.3, -1.4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ell(ctx, -2.3, 1.6, 1.8, 1.2);
+  ctx.fillStyle = '#fffaf1';
+  ctx.fill();
+  ctx.fillStyle = INK;
+  circle(ctx, -3.9, -0.6, 0.55);
+  ctx.fill();
+  circle(ctx, -0.7, -0.6, 0.55);
+  ctx.fill();
+  // a heart beside him
+  ctx.beginPath();
+  ctx.moveTo(5.2, 2.6);
+  ctx.bezierCurveTo(2.6, 0.6, 3.6, -2.6, 5.2, -1);
+  ctx.bezierCurveTo(6.8, -2.6, 7.8, 0.6, 5.2, 2.6);
+  ctx.fillStyle = '#e5574f';
+  ctx.fill();
+  // the magnet holding it up
+  magnet(ctx, -0.3, -7, 2.2, '#9db5a5');
+}
+
+/** A tiny snowflake, to mark the freezer door. */
+function snowflake(ctx, x, y, r) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.strokeStyle = '#5f8fb8';
+  ctx.lineWidth = 0.9;
+  for (let i = 0; i < 3; i++) {
+    ctx.rotate(Math.PI / 3);
+    ctx.beginPath();
+    ctx.moveTo(-r, 0);
+    ctx.lineTo(r, 0);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/**
+ * A tall fridge seen from above: cool brushed steel, the tops of its two doors along the front with
+ * a chunky handle each, and the usual magnets and a crayon drawing on it.
+ */
+function drawFridge(ctx, f, rnd) {
+  // All the furniture in a room shares one random stream. Use up exactly what the old fridge drawing
+  // did (two outline paths), so everything drawn after it keeps its hand-drawn wobble, and draw the
+  // fridge itself with its own stream.
+  topShape(ctx, f, rnd, 0, 0.4);
+  topShape(ctx, f, rnd, 4, 0.3);
+  const seed = Math.round(f.x * 131 + f.y * 17) + 7;
+  const outline = (inset, amp) => topShape(ctx, f, makeRng(seed + inset), inset, amp);
+  const own = makeRng(seed * 3 + 1);
+  const face = facing(f);
+  const { W, D } = face;
+  const band = Math.min(12, D * 0.2); // depth of the door tops along the front
+  const split = -W / 2 + W * 0.42; // freezer on one side, fridge on the other
+
+  // body: cool steel, lit from the top-left like everything else
+  outline(0, 0.4);
+  const lg = ctx.createLinearGradient(f.x, f.y, f.x + f.w, f.y + f.h);
+  lg.addColorStop(0, STEEL.hi);
+  lg.addColorStop(0.55, STEEL.base);
+  lg.addColorStop(1, STEEL.lo);
+  ctx.fillStyle = lg;
+  ctx.fill();
+
+  ctx.save();
+  outline(0, 0.4);
+  ctx.clip();
+  ctx.translate(f.cx, f.cy);
+  ctx.rotate(face.angle);
+  // brushed grain, running along the doors
+  for (let i = 0; i < 22; i++) {
+    const y = -D / 2 + own() * D;
+    const x0 = -W / 2 + own() * W * 0.4;
+    const x1 = x0 + W * (0.3 + own() * 0.6);
+    ctx.beginPath();
+    ctx.moveTo(x0, y);
+    ctx.lineTo(x1, y + (own() - 0.5) * 0.6);
+    ctx.strokeStyle = own() < 0.5 ? 'rgba(255, 255, 255, 0.55)' : 'rgba(110, 135, 155, 0.18)';
+    ctx.lineWidth = 0.5 + own() * 0.4;
+    ctx.stroke();
+  }
+  // the door tops along the front, a little darker, split between freezer and fridge
+  ctx.fillStyle = STEEL.door;
+  ctx.fillRect(-W / 2, D / 2 - band, W, band);
+  ctx.strokeStyle = INK_SOFT;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-W / 2, D / 2 - band);
+  ctx.lineTo(W / 2, D / 2 - band);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.beginPath();
+  ctx.moveTo(-W / 2 + 2, D / 2 - band + 1.2);
+  ctx.lineTo(W / 2 - 2, D / 2 - band + 1.2);
+  ctx.stroke();
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(split, D / 2 - band);
+  ctx.lineTo(split, D / 2);
+  ctx.stroke();
+  snowflake(ctx, -W / 2 + (split + W / 2) * 0.3, D / 2 - band * 0.62, 2.6);
+  ctx.restore();
+
+  // rim, bevel and outline
+  outline(3, 0.3);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.lineWidth = 1.1;
+  ctx.stroke();
+  outline(0, 0.4);
+  inkStroke(ctx, 1.8);
+
+  // two chunky handles, one per door, either side of the split, right along the front edge
+  ctx.save();
+  ctx.translate(f.cx, f.cy);
+  ctx.rotate(face.angle);
+  const len = W * 0.26;
+  const th = 5.6;
+  const hy = D / 2 - th - 0.8;
+  for (const x0 of [split - 3 - len, split + 3]) {
+    roundRectPath(ctx, x0 + 0.6, hy + 1, len, th, th / 2);
+    ctx.fillStyle = 'rgba(60, 40, 28, 0.25)';
+    ctx.fill();
+    roundRectPath(ctx, x0, hy, len, th, th / 2);
+    fillInk(ctx, STEEL.handle, 1.3);
+    ctx.strokeStyle = STEEL.shine;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x0 + 2.6, hy + 1.6);
+    ctx.lineTo(x0 + len - 2.6, hy + 1.6);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // magnets and the drawing on top (positions follow the front; the drawing and heart stay upright)
+  const at = (u, v) => {
+    const c = Math.cos(face.angle);
+    const s = Math.sin(face.angle);
+    return [f.cx + u * c - v * s, f.cy + u * s + v * c];
+  };
+  const usable = D / 2 - band; // the top, behind the doors
+  let p = at(-W * 0.12, -usable * 0.1);
+  ctx.save();
+  ctx.translate(p[0], p[1]);
+  ctx.rotate(-0.12);
+  pinnedDrawing(ctx, own);
+  ctx.restore();
+  p = at(W * 0.3, -usable * 0.62);
+  magnet(ctx, p[0], p[1], 3, '#e8b85a');
+  p = at(W * 0.26, usable * 0.32);
+  heartMagnet(ctx, p[0], p[1], 3.2, '#e3a79a');
+  p = at(-W * 0.36, usable * 0.52);
+  magnet(ctx, p[0], p[1], 2.6, '#9fc6dc');
+  p = at(-W * 0.34, -usable * 0.68);
+  magnet(ctx, p[0], p[1], 2.4, '#eba25c');
+}
+
 const FURNITURE_ART = {
   counter(ctx, f, rnd) {
     if (f.top === 'wood') woodTop(ctx, f, rnd, WOOD.oak);
@@ -743,25 +1014,7 @@ const FURNITURE_ART = {
     fillInk(ctx, '#e5574f', 1);
   },
   fridge(ctx, f, rnd) {
-    topShape(ctx, f, rnd, 0, 0.4);
-    ctx.fillStyle = '#f3f2ee';
-    ctx.fill();
-    inkStroke(ctx, 1.7);
-    topShape(ctx, f, rnd, 4, 0.3);
-    ctx.strokeStyle = 'rgba(160,160,165,0.5)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    // a cereal box someone left on top
-    ctx.save();
-    ctx.translate(f.cx + 4, f.cy - 6);
-    ctx.rotate(0.2);
-    roundRectPath(ctx, -9, -5, 18, 10, 1.5);
-    ctx.fillStyle = '#e8b85a';
-    ctx.fill();
-    inkStroke(ctx, 1);
-    ctx.fillStyle = '#e5574f';
-    ctx.fillRect(-5, -2.5, 10, 5);
-    ctx.restore();
+    drawFridge(ctx, f, rnd);
   },
   plantBig(ctx, f, rnd) {
     circle(ctx, f.cx, f.cy, f.r * 0.55);
